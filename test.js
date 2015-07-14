@@ -79,6 +79,33 @@ test('stream streams output a stream', function(t) {
   }).end(file)
 })
 
+test('buffer to read-only streams output a buffer', function(t) {
+  var readStream = fs.createReadStream(__filename)
+  var contents = fs.readFileSync(__filename)
+  var file = new File({ contents: contents })
+
+  transform(function () {
+    return readStream;
+  }).once('end', function() {
+    t.end()
+  }).on('data', function(file) {
+    t.ok(Buffer.isBuffer(file.contents), 'file.contents is a Buffer')
+  }).end(file)
+})
+
+test('stream to read-only streams output a stream', function(t) {
+  var contents = fs.createReadStream(__filename)
+  var file = new File({ contents: contents })
+
+  transform(function () {
+    return contents;
+  }).once('end', function() {
+    t.end()
+  }).on('data', function(file) {
+    t.ok(file.contents instanceof Stream, 'file.contents is a stream!')
+  }).end(file)
+})
+
 test('modifying buffer streams', function(t) {
   var contents = fs.readFileSync(__filename)
   var file = new File({ contents: contents })

@@ -15,15 +15,25 @@ function createStream(transform) {
     var stream = this
 
     if (file.isStream()) {
-      file.contents.pipe(output)
+      if (output.write) {
+        file.contents.pipe(output)
+      }
       file.contents.on('error', stream.emit.bind(stream, 'error'))
       file.contents = output
       this.push(file)
       return next()
     }
 
-    from([contents])
-      .pipe(output)
+    var outputStream;
+    if (output.write) {
+      outputStream = from([contents])
+        .pipe(output);
+    }
+    else {
+      outputStream = output;
+    }
+
+    outputStream
       .pipe(bl(function(err, buffer) {
         if (err) return stream.emit('error', err)
         file.contents = buffer
